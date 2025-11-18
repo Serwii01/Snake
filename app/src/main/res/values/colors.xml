@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#2c3e50</color>
+    <color name="colorPrimaryDark">#1B3147</color>
+    <color name="colorAccent">#3498db</color>
+    <color name="backgroundColor">#34495e</color>
+    <color name="textColor">#ecf0f1</color>
+    <color name="snakeColor">#2ecc71</color>
+    <color name="foodColor">#e74c3c</color>
+</resources>
