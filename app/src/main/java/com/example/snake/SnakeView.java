@@ -39,13 +39,20 @@ public class SnakeView extends View {
 
     private final Paint snakePaint = new Paint();
     private final Paint foodPaint = new Paint();
+    private final Paint gridPaint = new Paint();
 
     private static final int SWIPE_THRESHOLD = 100;
 
     public SnakeView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
         snakePaint.setColor(ContextCompat.getColor(context, R.color.snakeColor));
+        snakePaint.setAntiAlias(true); // Bordes suaves
+
         foodPaint.setColor(ContextCompat.getColor(context, R.color.foodColor));
+        foodPaint.setAntiAlias(true); // Bordes suaves
+
+        gridPaint.setColor(ContextCompat.getColor(context, R.color.boardColor));
+        gridPaint.setStrokeWidth(2);
     }
 
     @Override
@@ -170,14 +177,37 @@ public class SnakeView extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
+
+        // Dibujar cuadrícula
+        int width = getWidth();
+        int height = getHeight();
+        
+        for (int i = 0; i < width; i += blockSize) {
+            canvas.drawLine(i, 0, i, height, gridPaint);
+        }
+        for (int j = 0; j < height; j += blockSize) {
+            canvas.drawLine(0, j, width, j, gridPaint);
+        }
+
         if (food == null) return;
 
-        // Draw food
-        canvas.drawRect(food.x * blockSize, food.y * blockSize, (food.x + 1) * blockSize, (food.y + 1) * blockSize, foodPaint);
+        // Dibujar comida (Circular)
+        float radius = blockSize / 2f;
+        float padding = 8f; // Un poco de padding para que no toque los bordes
+        canvas.drawCircle(
+                food.x * blockSize + radius,
+                food.y * blockSize + radius,
+                radius - padding,
+                foodPaint);
 
-        // Draw snake
+        // Dibujar serpiente (Rectángulos redondeados)
         for (Point p : snake) {
-            canvas.drawRect(p.x * blockSize, p.y * blockSize, (p.x + 1) * blockSize, (p.y + 1) * blockSize, snakePaint);
+             float left = p.x * blockSize + padding;
+             float top = p.y * blockSize + padding;
+             float right = (p.x + 1) * blockSize - padding;
+             float bottom = (p.y + 1) * blockSize - padding;
+             
+             canvas.drawRoundRect(left, top, right, bottom, 15f, 15f, snakePaint);
         }
     }
 

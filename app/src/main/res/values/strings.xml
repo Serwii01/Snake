@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">Snake</string>
+    <string name="titulo">Snake</string>
+    <string name="rec">Record</string>
+    <string name="dev">Sergio Fernández Morales</string>
+    <string name="play">Jugar!</string>
 </resources>

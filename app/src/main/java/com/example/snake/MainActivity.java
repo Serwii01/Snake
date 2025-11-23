@@ -12,7 +12,7 @@ import com.google.android.material.button.MaterialButton;
 
 public class MainActivity extends AppCompatActivity {
 
-    private TextView highScoreTextView;
+    private TextView scoreValueText;
     private MaterialButton playButton;
 
     @Override
@@ -20,7 +20,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        highScoreTextView = findViewById(R.id.highScoreTextView);
+        // Buscamos el TextView del número grande
+        scoreValueText = findViewById(R.id.scoreValueText);
         playButton = findViewById(R.id.playButton);
 
         playButton.setOnClickListener(new View.OnClickListener() {
@@ -36,6 +37,10 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         SharedPreferences prefs = getSharedPreferences("SnakeGame", MODE_PRIVATE);
         int highScore = prefs.getInt("highScore", 0);
-        highScoreTextView.setText("High Score: " + highScore);
+        
+        // Actualizamos solo el número
+        if (scoreValueText != null) {
+            scoreValueText.setText(String.valueOf(highScore));
+        }
     }
 }
