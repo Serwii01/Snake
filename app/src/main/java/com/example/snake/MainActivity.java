@@ -8,12 +8,9 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.google.android.material.button.MaterialButton;
-
 public class MainActivity extends AppCompatActivity {
 
     private TextView scoreValueText;
-    private MaterialButton playButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -22,14 +19,10 @@ public class MainActivity extends AppCompatActivity {
 
         // Buscamos el TextView del número grande
         scoreValueText = findViewById(R.id.scoreValueText);
-        playButton = findViewById(R.id.playButton);
+    }
 
-        playButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(MainActivity.this, GameActivity.class));
-            }
-        });
+    public void startGame(View view) {
+        startActivity(new Intent(MainActivity.this, GameActivity.class));
     }
 
     @Override

@@ -72,6 +72,7 @@
                 android:id="@+id/playButton"
                 android:layout_width="match_parent"
                 android:layout_height="60dp"
+                android:onClick="startGame"
                 android:text="@string/play"
                 android:textColor="#1E1E2C"
                 android:textSize="18sp"

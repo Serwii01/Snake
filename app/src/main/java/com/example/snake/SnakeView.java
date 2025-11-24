@@ -29,7 +29,6 @@ public class SnakeView extends View {
     private final List<Point> snake = new ArrayList<>();
     private Point food;
     private boolean isPlaying = false;
-    private boolean isPaused = false;
     private boolean isGameOver = false;
     private int score = 0;
 
@@ -66,23 +65,10 @@ public class SnakeView extends View {
         snake.add(new Point(5, 5));
         spawnFood();
         isPlaying = true;
-        isPaused = false;
         isGameOver = false;
         score = 0;
         dir = Direction.RIGHT;
         handler.removeCallbacks(gameLoop);
-        handler.postDelayed(gameLoop, updateDelay);
-    }
-
-    public void pause() {
-        if (!isPlaying || isGameOver) return;
-        isPaused = true;
-        handler.removeCallbacks(gameLoop);
-    }
-
-    public void resume() {
-        if (!isPlaying || isGameOver || !isPaused) return;
-        isPaused = false;
         handler.postDelayed(gameLoop, updateDelay);
     }
 
@@ -110,7 +96,7 @@ public class SnakeView extends View {
     private final Runnable gameLoop = new Runnable() {
         @Override
         public void run() {
-            if (isPlaying && !isPaused) {
+            if (isPlaying) {
                 update();
                 invalidate();
                 handler.postDelayed(this, updateDelay);
@@ -213,7 +199,7 @@ public class SnakeView extends View {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        if (!isPlaying || isPaused || isGameOver) return true;
+        if (!isPlaying || isGameOver) return true;
 
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
