@@ -30,10 +30,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Método vinculado al botón "Jugar" en el archivo activity_main.xml (android:onClick="iniciarJuego").
-     * Inicia la GameActivity para comenzar el juego.
-     *
-     * @param view La vista que disparó el evento (el botón).
+     * cambia de vista
      */
     public void iniciarJuego(View view) {
         Intent intent = new Intent(MainActivity.this, GameActivity.class);
@@ -41,9 +38,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Se llama cuando la actividad vuelve a primer plano.
-     * Actualizamos la puntuación máxima aquí para asegurar que se muestre el valor más reciente
-     * si el usuario acaba de volver de jugar una partida.
+     * Se llama cuando la actividad vuelve a primer plano y se actualiza la puntuacion
+     * se usa onresume para no tener que cerrar la app
      */
     @Override
     protected void onResume() {

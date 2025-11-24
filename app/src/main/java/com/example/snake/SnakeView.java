@@ -19,10 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-/**
- * Clase principal del juego que maneja la lógica, el renderizado y los controles de la serpiente.
- * Hereda de View para dibujar gráficos personalizados en la pantalla.
- */
+
 public class SnakeView extends View {
 
     // Direcciones posibles de movimiento
@@ -50,9 +47,7 @@ public class SnakeView extends View {
 
     private static final int UMBRAL_DESLIZAMIENTO = 100; // Distancia mínima para detectar un deslizamiento
 
-    /**
-     * Constructor de la vista. Inicializa los colores, pinceles y el sonido.
-     */
+
     public SnakeView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
         
@@ -73,8 +68,8 @@ public class SnakeView extends View {
     }
 
     /**
-     * Se llama cuando cambia el tamaño de la vista. 
-     * Se usa para iniciar el juego una vez que conocemos las dimensiones de la pantalla.
+     * parametros con los que inicia
+     * (datos obtenidos de la pantallas)
      */
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
@@ -83,8 +78,7 @@ public class SnakeView extends View {
     }
 
     /**
-     * Inicializa o reinicia el estado del juego.
-     * Coloca la serpiente en la posición inicial, genera comida y arranca el bucle de juego.
+     * empieza spawneando la serpiente.
      */
     private void inicializarJuego() {
         serpiente.clear();
@@ -102,7 +96,6 @@ public class SnakeView extends View {
 
     /**
      * Genera una nueva posición para la comida en una ubicación aleatoria.
-     * Se asegura de que la comida no aparezca sobre el cuerpo de la serpiente.
      */
     private void generarComida() {
         Random random = new Random();
@@ -128,7 +121,6 @@ public class SnakeView extends View {
     }
 
     /**
-     * Bucle principal del juego. Se ejecuta repetidamente cada 'retrasoActualizacion' milisegundos.
      * Actualiza la lógica y redibuja la pantalla.
      */
     private final Runnable bucleJuego = new Runnable() {
