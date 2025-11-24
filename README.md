@@ -1,71 +1,70 @@
-# 🐍 Snake Game - Neon Edition
 
-¡Bienvenido a mi versión del mítico Snake! Este proyecto es el clásico juego de la serpiente hecho para Android usando Java puro. Nada de motores pesados como Unity; aquí todo está hecho a mano y con código limpio.
+## Características Generales
 
-## ¿Qué tiene de especial?
-*   **Look Neon:** Un diseño oscuro con colores chillones que queda genial.
-*   **100% Código Propio:** El motor del juego está hecho desde cero.
-*   **Guarda tu récord:** Si haces una puntuación increíble, se queda guardada aunque cierres la app.
-*   **Sonido:** Tiene un efecto de sonido cuando la serpiente come.
+*   **Motor Gráfico:** Renderizado 2D optimizado mediante `Canvas` y `Paint`.
+*   **Persistencia de Datos:** Almacenamiento local de la puntuación máxima.
+*   **Sistema de Audio:** Reproducción de efectos de sonido sincronizados con eventos del juego.
+*   **Control Gestual:** Detección de deslizamientos (swipes) para el control de la serpiente.
 
 ---
 
-## ⚙️ ¿Cómo funciona esto por dentro?
+## Arquitectura y Funcionamiento
 
-La app es sencilla: tiene dos pantallas y una clase "mágica" que hace todo el trabajo duro. Vamos paso a paso:
+La aplicación sigue una estructura modular sencilla, dividiendo la responsabilidad entre la interfaz de usuario y la lógica del juego. A continuación se detalla el funcionamiento de cada componente:
 
-### 1. El Menú (`MainActivity`)
-Es la pantalla que ves al abrir la app. Aquí no hay mucho misterio, pero hace dos cosas importantes:
-*   **Muestra el Récord:** Usa una cosa llamada `SharedPreferences` (que es como una libreta interna de la app) para leer la puntuación máxima guardada.
-*   **El truco del `onResume`:** Usamos este método para que, si juegas una partida y vuelves al menú, el récord se actualice al instante. Si no lo hiciéramos ahí, verías el número viejo hasta que reiniciaras la app.
+### 1. MainActivity (Menú Principal)
+Es el punto de entrada de la aplicación. Su responsabilidad principal es la gestión del estado global de la puntuación y la navegación.
 
-### 2. La Caja del Juego (`GameActivity`)
-Esta actividad es solo un contenedor vacío. Imagínatelo como un marco de un cuadro. Su único trabajo es decirle a Android: "Oye, carga aquí dentro la vista del juego (`SnakeView`)". No tiene lógica, solo sostiene el juego.
+*   **Gestión del Récord:** Utiliza `SharedPreferences` para almacenar y recuperar la puntuación máxima de forma persistente.
+*   **Ciclo de Vida:** Implementa la lectura de datos en el método `onResume()`. Esto garantiza que la puntuación mostrada en la pantalla principal se actualice inmediatamente al regresar de una partida, sin necesidad de reiniciar la actividad.
+*   **Navegación:** Inicia la actividad del juego (`GameActivity`) mediante un `Intent` explícito.
 
-### 3. El Corazón del Juego (`SnakeView`)
-Aquí es donde está toda la "chicha". Es una **Vista Personalizada** (`Custom View`), lo que significa que en vez de usar botones o textos normales, nosotros le decimos a Android píxel a píxel qué dibujar.
+### 2. GameActivity (Contenedor)
+Funciona como un contenedor para la vista del juego. Es una actividad mínima que carga el layout `activity_game.xml`, el cual contiene la instancia de `SnakeView`. Su función es proporcionar el contexto de pantalla completa necesario para la ejecución del juego.
 
-#### A. Preparando el terreno
-Cuando arranca, preparamos los "pinceles" (`Paint`) con los colores neón y cargamos el sonido en memoria. También calculamos cuánto mide la pantalla (`onSizeChanged`) para saber cuántos cuadraditos caben en el tablero.
+### 3. SnakeView (Motor del Juego)
+Esta clase es el núcleo del proyecto. Hereda de la clase `View` de Android y encapsula toda la lógica, el renderizado y el manejo de entradas del juego.
 
-#### B. El Bucle Infinito (Game Loop)
-Un juego necesita moverse todo el rato. Para esto usamos un truco con un `Handler` (un temporizador).
-1.  **Ejecuta:** Mueve la serpiente y comprueba cosas.
-2.  **Pinta:** Dibuja todo de nuevo.
-3.  **Espera:** Se pausa 200 milisegundos.
-4.  **Repite:** Vuelve al paso 1.
-Esto crea la ilusión de movimiento a 5 fotogramas por segundo. ¡Simple pero efectivo!
+#### A. Inicialización
+En el constructor y en el método `onSizeChanged()`, se configuran los recursos gráficos (`Paint`) y se calculan las dimensiones del tablero basándose en la resolución del dispositivo. Se inicializa también el `MediaPlayer` para los efectos de sonido.
 
-#### C. La Lógica (`actualizar`)
-Cada vez que el bucle "piensa", hace esto:
-1.  **Calcula la cabeza:** Mira hacia dónde vas y calcula la siguiente casilla.
-2.  **¿Choque?**: Si la casilla está fuera de la pantalla o toca tu propio cuerpo -> ¡Game Over!
-3.  **¿Comida?**:
-    *   Si la cabeza toca la comida: Sumamos punto, suena el audio y la serpiente crece (simplemente no borramos la cola).
-    *   Si no come: La serpiente se mueve "borrando" el último trozo de la cola para mantener su tamaño.
+#### B. Bucle de Juego (Game Loop)
+Para lograr la animación, se implementa un bucle de juego utilizando un `Handler` y un `Runnable`.
+*   El sistema ejecuta el método de actualización lógica y solicita un redibujado (`invalidate()`).
+*   Posteriormente, programa la siguiente ejecución con un retraso de 200ms, estableciendo así la velocidad del juego.
 
-#### D. El Pintor (`onDraw`)
-Este método es el artista. Android le da un lienzo en blanco (`Canvas`) y nosotros pintamos:
-*   Primero la cuadrícula flojita de fondo.
-*   Luego la bolita de comida.
-*   Y al final, recorremos toda la lista de puntos de la serpiente y dibujamos rectángulos redondeados para que quede suave.
+#### C. Lógica de Actualización
+El método `actualizar()` gestiona las reglas del juego en cada ciclo:
+1.  **Movimiento:** Calcula la nueva posición de la cabeza de la serpiente según la dirección actual.
+2.  **Detección de Colisiones:** Verifica si la nueva posición está fuera de los límites del tablero o si coincide con una coordenada ocupada por el cuerpo de la serpiente.
+3.  **Mecánica de Alimentación:**
+    *   Si la serpiente alcanza la comida, se incrementa la puntuación, se reproduce el sonido y la serpiente crece (no se elimina el último segmento).
+    *   Si no come, la serpiente se desplaza manteniendo su longitud (se elimina el último segmento de la cola).
 
-#### E. Los Dedos (`onTouchEvent`)
-Para controlarla, detectamos cuando pones el dedo y cuando lo levantas.
-*   Calculamos la diferencia: ¿Has movido el dedo más en horizontal o en vertical?
-*   Dependiendo de eso, cambiamos la dirección.
-*   *Nota:* El código impide que hagas un giro de 180º (ej. ir hacia abajo si vas hacia arriba) para que no te choques contigo mismo por error.
+#### D. Renderizado
+El método `onDraw(Canvas canvas)` se encarga de dibujar el estado actual del juego:
+*   Dibuja una cuadrícula de fondo para referencia visual.
+*   Renderiza la comida como un elemento circular.
+*   Dibuja el cuerpo de la serpiente iterando sobre la lista de coordenadas y pintando rectángulos con bordes redondeados.
 
-#### F. Limpieza
-Cuando cierras el juego, nos aseguramos de liberar el sonido y parar el bucle para que el móvil no se quede gastando batería a lo tonto (`onDetachedFromWindow`).
+#### E. Control de Entrada
+Se sobrescribe el método `onTouchEvent()` para detectar gestos táctiles:
+*   Calcula el desplazamiento entre el punto inicial y final del toque.
+*   Determina la dirección del deslizamiento (horizontal o vertical) comparando las diferencias en los ejes X e Y.
+*   Aplica cambios de dirección validando que no sean opuestos al movimiento actual (para evitar colisiones inmediatas).
+
+#### F. Gestión de Recursos
+El método `onDetachedFromWindow()` asegura la liberación correcta de recursos, como el objeto `MediaPlayer` y la detención del bucle de juego, previniendo fugas de memoria al cerrar la actividad.
 
 ---
 
-## Estructura
-*   `MainActivity.java`: El menú.
-*   `SnakeView.java`: Donde ocurre la magia (lógica + gráficos).
-*   `GameActivity.java`: El envoltorio del juego.
-*   `ehhsound.mp3`: El sonido que hace al comer.
+## Estructura del Proyecto
+
+*   **`MainActivity.java`**: Lógica de la pantalla de inicio y puntuaciones.
+*   **`GameActivity.java`**: Actividad contenedora del juego.
+*   **`SnakeView.java`**: Clase personalizada que contiene toda la lógica y gráficos del juego.
+*   **`res/layout/`**: Archivos XML que definen la interfaz de usuario.
+*   **`res/raw/`**: Contiene los recursos de audio.
 
 ## Autor
-Creado por **Sergio Fernández Morales**.
+Desarrollado por **Sergio Fernández Morales**.
