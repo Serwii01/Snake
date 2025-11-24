@@ -26,29 +26,29 @@ import java.util.Random;
 public class SnakeView extends View {
 
     // Direcciones posibles de movimiento
-    private enum Direction {
-        UP, DOWN, LEFT, RIGHT
+    private enum Direccion {
+        ARRIBA, ABAJO, IZQUIERDA, DERECHA
     }
 
-    private Direction dir = Direction.RIGHT;
-    private float startX, startY;
-    private final List<Point> snake = new ArrayList<>();
-    private Point food;
-    private boolean isPlaying = false;
-    private boolean isGameOver = false;
-    private int score = 0;
+    private Direccion direccion = Direccion.DERECHA;
+    private float inicioX, inicioY;
+    private final List<Point> serpiente = new ArrayList<>();
+    private Point comida;
+    private boolean jugando = false;
+    private boolean juegoTerminado = false;
+    private int puntuacion = 0;
 
-    private final int blockSize = 60; // Tamaño de cada celda en píxeles
-    private final Handler handler = new Handler();
-    private final long updateDelay = 200; // Velocidad de actualización del juego (ms)
+    private final int tamanoBloque = 60; // Tamaño de cada celda en píxeles
+    private final Handler manejador = new Handler();
+    private final long retrasoActualizacion = 200; // Velocidad de actualización del juego (ms)
 
-    private final Paint snakePaint = new Paint();
-    private final Paint foodPaint = new Paint();
-    private final Paint gridPaint = new Paint();
+    private final Paint pinturaSerpiente = new Paint();
+    private final Paint pinturaComida = new Paint();
+    private final Paint pinturaCuadricula = new Paint();
 
-    private MediaPlayer eatSound;
+    private MediaPlayer sonidoComer;
 
-    private static final int SWIPE_THRESHOLD = 100; // Distancia mínima para detectar un deslizamiento
+    private static final int UMBRAL_DESLIZAMIENTO = 100; // Distancia mínima para detectar un deslizamiento
 
     /**
      * Constructor de la vista. Inicializa los colores, pinceles y el sonido.
@@ -57,19 +57,19 @@ public class SnakeView extends View {
         super(context, attrs);
         
         // Configuración del color y estilo de la serpiente (verde neón)
-        snakePaint.setColor(ContextCompat.getColor(context, R.color.snakeColor));
-        snakePaint.setAntiAlias(true); // Bordes suaves
+        pinturaSerpiente.setColor(ContextCompat.getColor(context, R.color.snakeColor));
+        pinturaSerpiente.setAntiAlias(true); // Bordes suaves
 
         // Configuración del color y estilo de la comida (rojo rosado)
-        foodPaint.setColor(ContextCompat.getColor(context, R.color.foodColor));
-        foodPaint.setAntiAlias(true); // Bordes suaves
+        pinturaComida.setColor(ContextCompat.getColor(context, R.color.foodColor));
+        pinturaComida.setAntiAlias(true); // Bordes suaves
 
         // Configuración de la cuadrícula de fondo
-        gridPaint.setColor(ContextCompat.getColor(context, R.color.boardColor));
-        gridPaint.setStrokeWidth(2);
+        pinturaCuadricula.setColor(ContextCompat.getColor(context, R.color.boardColor));
+        pinturaCuadricula.setStrokeWidth(2);
         
         // Inicializar el reproductor de sonido con el archivo de audio "ehhsound.mp3"
-        eatSound = MediaPlayer.create(context, R.raw.ehhsound);
+        sonidoComer = MediaPlayer.create(context, R.raw.ehhsound);
     }
 
     /**
@@ -79,65 +79,65 @@ public class SnakeView extends View {
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
-        initGame();
+        inicializarJuego();
     }
 
     /**
      * Inicializa o reinicia el estado del juego.
      * Coloca la serpiente en la posición inicial, genera comida y arranca el bucle de juego.
      */
-    private void initGame() {
-        snake.clear();
-        snake.add(new Point(5, 5)); // Posición inicial
-        spawnFood();
-        isPlaying = true;
-        isGameOver = false;
-        score = 0;
-        dir = Direction.RIGHT;
+    private void inicializarJuego() {
+        serpiente.clear();
+        serpiente.add(new Point(5, 5)); // Posición inicial
+        generarComida();
+        jugando = true;
+        juegoTerminado = false;
+        puntuacion = 0;
+        direccion = Direccion.DERECHA;
         
         // Reiniciar el bucle de actualización
-        handler.removeCallbacks(gameLoop);
-        handler.postDelayed(gameLoop, updateDelay);
+        manejador.removeCallbacks(bucleJuego);
+        manejador.postDelayed(bucleJuego, retrasoActualizacion);
     }
 
     /**
      * Genera una nueva posición para la comida en una ubicación aleatoria.
      * Se asegura de que la comida no aparezca sobre el cuerpo de la serpiente.
      */
-    private void spawnFood() {
+    private void generarComida() {
         Random random = new Random();
-        int widthInBlocks = getWidth() / blockSize;
-        int heightInBlocks = getHeight() / blockSize;
+        int anchoEnBloques = getWidth() / tamanoBloque;
+        int altoEnBloques = getHeight() / tamanoBloque;
         
-        if (widthInBlocks > 0 && heightInBlocks > 0) {
-            Point newFoodPosition;
-            boolean foodOnSnake;
+        if (anchoEnBloques > 0 && altoEnBloques > 0) {
+            Point nuevaPosicionComida;
+            boolean comidaSobreSerpiente;
             do {
-                newFoodPosition = new Point(random.nextInt(widthInBlocks), random.nextInt(heightInBlocks));
-                foodOnSnake = false;
+                nuevaPosicionComida = new Point(random.nextInt(anchoEnBloques), random.nextInt(altoEnBloques));
+                comidaSobreSerpiente = false;
                 // Verificar colisión con el cuerpo de la serpiente
-                for (Point p : snake) {
-                    if (p.equals(newFoodPosition)) {
-                        foodOnSnake = true;
+                for (Point p : serpiente) {
+                    if (p.equals(nuevaPosicionComida)) {
+                        comidaSobreSerpiente = true;
                         break;
                     }
                 }
-            } while (foodOnSnake);
-            food = newFoodPosition;
+            } while (comidaSobreSerpiente);
+            comida = nuevaPosicionComida;
         }
     }
 
     /**
-     * Bucle principal del juego. Se ejecuta repetidamente cada 'updateDelay' milisegundos.
+     * Bucle principal del juego. Se ejecuta repetidamente cada 'retrasoActualizacion' milisegundos.
      * Actualiza la lógica y redibuja la pantalla.
      */
-    private final Runnable gameLoop = new Runnable() {
+    private final Runnable bucleJuego = new Runnable() {
         @Override
         public void run() {
-            if (isPlaying) {
-                update();       // Actualizar lógica (movimiento, colisiones)
+            if (jugando) {
+                actualizar();       // Actualizar lógica (movimiento, colisiones)
                 invalidate();   // Forzar redibujado (llama a onDraw)
-                handler.postDelayed(this, updateDelay); // Programar siguiente ejecución
+                manejador.postDelayed(this, retrasoActualizacion); // Programar siguiente ejecución
             }
         }
     };
@@ -145,83 +145,83 @@ public class SnakeView extends View {
     /**
      * Actualiza la lógica del juego: mueve la serpiente, comprueba colisiones y si come comida.
      */
-    private void update() {
-        if (food == null) {
-            spawnFood();
-            if (food == null) return;
+    private void actualizar() {
+        if (comida == null) {
+            generarComida();
+            if (comida == null) return;
         }
 
         // Calcular la nueva posición de la cabeza basada en la dirección actual
-        Point head = new Point(snake.get(0));
-        switch (dir) {
-            case UP: head.y--; break;
-            case DOWN: head.y++; break;
-            case LEFT: head.x--; break;
-            case RIGHT: head.x++; break;
+        Point cabeza = new Point(serpiente.get(0));
+        switch (direccion) {
+            case ARRIBA: cabeza.y--; break;
+            case ABAJO: cabeza.y++; break;
+            case IZQUIERDA: cabeza.x--; break;
+            case DERECHA: cabeza.x++; break;
         }
 
         // Verificar colisión con los bordes de la pantalla
-        int widthInBlocks = getWidth() / blockSize;
-        int heightInBlocks = getHeight() / blockSize;
-        if (head.x < 0 || head.x >= widthInBlocks || head.y < 0 || head.y >= heightInBlocks) {
-            gameOver();
+        int anchoEnBloques = getWidth() / tamanoBloque;
+        int altoEnBloques = getHeight() / tamanoBloque;
+        if (cabeza.x < 0 || cabeza.x >= anchoEnBloques || cabeza.y < 0 || cabeza.y >= altoEnBloques) {
+            finDelJuego();
             return;
         }
 
         // Verificar colisión con el propio cuerpo
-        for (int i = 1; i < snake.size(); i++) {
-            if (head.equals(snake.get(i))) {
-                gameOver();
+        for (int i = 1; i < serpiente.size(); i++) {
+            if (cabeza.equals(serpiente.get(i))) {
+                finDelJuego();
                 return;
             }
         }
 
         // Mover la serpiente añadiendo la nueva cabeza
-        snake.add(0, head);
+        serpiente.add(0, cabeza);
 
         // Verificar si ha comido
-        if (head.equals(food)) {
-            score++;
-            playEatSound(); // Reproducir sonido
-            spawnFood();    // Generar nueva comida
+        if (cabeza.equals(comida)) {
+            puntuacion++;
+            reproducirSonidoComer(); // Reproducir sonido
+            generarComida();    // Generar nueva comida
         } else {
             // Si no come, eliminamos la cola para mantener el tamaño (simulando movimiento)
-            snake.remove(snake.size() - 1);
+            serpiente.remove(serpiente.size() - 1);
         }
     }
 
     /**
      * Reproduce el sonido de comer.
      */
-    private void playEatSound() {
-        if (eatSound != null) {
-            if (eatSound.isPlaying()) {
-                eatSound.seekTo(0); // Reiniciar si ya se está reproduciendo
+    private void reproducirSonidoComer() {
+        if (sonidoComer != null) {
+            if (sonidoComer.isPlaying()) {
+                sonidoComer.seekTo(0); // Reiniciar si ya se está reproduciendo
             }
-            eatSound.start();
+            sonidoComer.start();
         }
     }
 
     /**
      * Maneja el fin del juego. Detiene el bucle, guarda la puntuación y cierra la actividad.
      */
-    private void gameOver() {
-        isPlaying = false;
-        isGameOver = true;
-        handler.removeCallbacks(gameLoop);
-        saveHighScore();
+    private void finDelJuego() {
+        jugando = false;
+        juegoTerminado = true;
+        manejador.removeCallbacks(bucleJuego);
+        guardarPuntuacionMaxima();
         ((Activity) getContext()).finish(); // Volver al menú principal
     }
 
     /**
      * Guarda la puntuación máxima en SharedPreferences si la puntuación actual es mayor.
      */
-    private void saveHighScore() {
+    private void guardarPuntuacionMaxima() {
         SharedPreferences prefs = getContext().getSharedPreferences("SnakeGame", Context.MODE_PRIVATE);
-        int highScore = prefs.getInt("highScore", 0);
-        if (score > highScore) {
+        int puntuacionMaxima = prefs.getInt("highScore", 0);
+        if (puntuacion > puntuacionMaxima) {
             SharedPreferences.Editor editor = prefs.edit();
-            editor.putInt("highScore", score);
+            editor.putInt("highScore", puntuacion);
             editor.apply();
         }
     }
@@ -234,35 +234,35 @@ public class SnakeView extends View {
         super.onDraw(canvas);
 
         // Dibujar cuadrícula de fondo
-        int width = getWidth();
-        int height = getHeight();
+        int ancho = getWidth();
+        int alto = getHeight();
         
-        for (int i = 0; i < width; i += blockSize) {
-            canvas.drawLine(i, 0, i, height, gridPaint);
+        for (int i = 0; i < ancho; i += tamanoBloque) {
+            canvas.drawLine(i, 0, i, alto, pinturaCuadricula);
         }
-        for (int j = 0; j < height; j += blockSize) {
-            canvas.drawLine(0, j, width, j, gridPaint);
+        for (int j = 0; j < alto; j += tamanoBloque) {
+            canvas.drawLine(0, j, ancho, j, pinturaCuadricula);
         }
 
-        if (food == null) return;
+        if (comida == null) return;
 
         // Dibujar comida (Círculo)
-        float radius = blockSize / 2f;
-        float padding = 8f; 
+        float radio = tamanoBloque / 2f;
+        float relleno = 8f; 
         canvas.drawCircle(
-                food.x * blockSize + radius,
-                food.y * blockSize + radius,
-                radius - padding,
-                foodPaint);
+                comida.x * tamanoBloque + radio,
+                comida.y * tamanoBloque + radio,
+                radio - relleno,
+                pinturaComida);
 
         // Dibujar serpiente (Rectángulos redondeados)
-        for (Point p : snake) {
-             float left = p.x * blockSize + padding;
-             float top = p.y * blockSize + padding;
-             float right = (p.x + 1) * blockSize - padding;
-             float bottom = (p.y + 1) * blockSize - padding;
+        for (Point p : serpiente) {
+             float izquierda = p.x * tamanoBloque + relleno;
+             float arriba = p.y * tamanoBloque + relleno;
+             float derecha = (p.x + 1) * tamanoBloque - relleno;
+             float abajo = (p.y + 1) * tamanoBloque - relleno;
              
-             canvas.drawRoundRect(left, top, right, bottom, 15f, 15f, snakePaint);
+             canvas.drawRoundRect(izquierda, arriba, derecha, abajo, 15f, 15f, pinturaSerpiente);
         }
     }
 
@@ -271,29 +271,29 @@ public class SnakeView extends View {
      */
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        if (!isPlaying || isGameOver) return true;
+        if (!jugando || juegoTerminado) return true;
 
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
-                startX = event.getX();
-                startY = event.getY();
+                inicioX = event.getX();
+                inicioY = event.getY();
                 break;
             case MotionEvent.ACTION_UP:
-                float endX = event.getX();
-                float endY = event.getY();
-                float deltaX = endX - startX;
-                float deltaY = endY - startY;
+                float finX = event.getX();
+                float finY = event.getY();
+                float deltaX = finX - inicioX;
+                float deltaY = finY - inicioY;
 
                 // Detectar si el movimiento supera el umbral mínimo para considerarse un deslizamiento
-                if (Math.abs(deltaX) > SWIPE_THRESHOLD || Math.abs(deltaY) > SWIPE_THRESHOLD) {
+                if (Math.abs(deltaX) > UMBRAL_DESLIZAMIENTO || Math.abs(deltaY) > UMBRAL_DESLIZAMIENTO) {
                     if (Math.abs(deltaX) > Math.abs(deltaY)) {
                         // Deslizamiento horizontal
-                        if (deltaX > 0 && dir != Direction.LEFT) dir = Direction.RIGHT;
-                        else if (deltaX < 0 && dir != Direction.RIGHT) dir = Direction.LEFT;
+                        if (deltaX > 0 && direccion != Direccion.IZQUIERDA) direccion = Direccion.DERECHA;
+                        else if (deltaX < 0 && direccion != Direccion.DERECHA) direccion = Direccion.IZQUIERDA;
                     } else {
                         // Deslizamiento vertical
-                        if (deltaY > 0 && dir != Direction.UP) dir = Direction.DOWN;
-                        else if (deltaY < 0 && dir != Direction.DOWN) dir = Direction.UP;
+                        if (deltaY > 0 && direccion != Direccion.ARRIBA) direccion = Direccion.ABAJO;
+                        else if (deltaY < 0 && direccion != Direccion.ABAJO) direccion = Direccion.ARRIBA;
                     }
                 }
                 break;
@@ -307,9 +307,9 @@ public class SnakeView extends View {
     @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
-        if (eatSound != null) {
-            eatSound.release();
-            eatSound = null;
+        if (sonidoComer != null) {
+            sonidoComer.release();
+            sonidoComer = null;
         }
     }
 }

@@ -15,7 +15,7 @@ import androidx.appcompat.app.AppCompatActivity;
 public class MainActivity extends AppCompatActivity {
 
     // Vista de texto para mostrar la puntuación máxima alcanzada
-    private TextView scoreValueText;
+    private TextView textoValorRecord;
 
     /**
      * Se llama al crear la actividad. Inicializa la interfaz de usuario.
@@ -26,16 +26,16 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         // Obtener referencia al TextView del diseño para poder actualizarlo después
-        scoreValueText = findViewById(R.id.scoreValueText);
+        textoValorRecord = findViewById(R.id.textoValorRecord);
     }
 
     /**
-     * Método vinculado al botón "Jugar" en el archivo activity_main.xml (android:onClick="startGame").
+     * Método vinculado al botón "Jugar" en el archivo activity_main.xml (android:onClick="iniciarJuego").
      * Inicia la GameActivity para comenzar el juego.
      *
      * @param view La vista que disparó el evento (el botón).
      */
-    public void startGame(View view) {
+    public void iniciarJuego(View view) {
         Intent intent = new Intent(MainActivity.this, GameActivity.class);
         startActivity(intent);
     }
@@ -54,8 +54,8 @@ public class MainActivity extends AppCompatActivity {
         int highScore = prefs.getInt("highScore", 0);
         
         // Mostrar la puntuación en el TextView
-        if (scoreValueText != null) {
-            scoreValueText.setText(String.valueOf(highScore));
+        if (textoValorRecord != null) {
+            textoValorRecord.setText(String.valueOf(highScore));
         }
     }
 }
